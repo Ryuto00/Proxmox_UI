@@ -14,13 +14,14 @@ export default function EditRequestPage() {
   const router = useRouter();
   const params = useParams();
 
-  // รองรับ array จาก dynamic route
-  const requestId: string = Array.isArray(params.id) ? params.id[0] : params.id!;
+  const requestId: string = Array.isArray(params.id)
+    ? params.id[0]
+    : (params.id as string);
 
-
-  // States
   const [osOptions, setOsOptions] = useState<string[]>([]);
   const [specOptions, setSpecOptions] = useState<any[]>([]);
+
+  const [instanceName, setInstanceName] = useState("");
   const [selectedOS, setSelectedOS] = useState("");
   const [selectedSpec, setSelectedSpec] = useState<any | null>(null);
 
@@ -30,7 +31,6 @@ export default function EditRequestPage() {
 
   const [loading, setLoading] = useState(true);
 
-  // --- Load ทั้งหมด ---
   useEffect(() => {
     async function load() {
       try {
@@ -41,10 +41,19 @@ export default function EditRequestPage() {
         setOsOptions(os);
         setSpecOptions(specs);
 
+        // Autofill
+        setInstanceName(req.name || "");
         setSelectedOS(req.os);
-        setSelectedSpec(specs.find((s) => s.name === req.spec));
 
-        setEnableGPU(req.enableGPU);
+        // รองรับทั้ง object และ string
+        const matchedSpec =
+          specs.find((s) => s.name === req.spec?.name) ||
+          specs.find((s) => s.name === req.spec) ||
+          null;
+
+        setSelectedSpec(matchedSpec);
+
+        setEnableGPU(req.gpu);
         setStartDate(req.startDate);
         setEndDate(req.endDate);
       } catch (err) {
@@ -73,7 +82,6 @@ export default function EditRequestPage() {
         </span>
       </div>
 
-      {/* PAGE CONTENT */}
       <div className="px-16 pt-12 pb-10">
 
         <h1 className="text-4xl font-semibold text-gray-900 mb-10">
@@ -81,6 +89,16 @@ export default function EditRequestPage() {
         </h1>
 
         <div className="bg-[#e8defc] px-12 py-12 rounded-3xl shadow-xl w-full max-w-5xl mx-auto">
+
+          {/* INSTANCE NAME */}
+          <p className="text-2xl font-semibold text-gray-900 mb-3">Instance Name</p>
+          <input
+            type="text"
+            value={instanceName}
+            onChange={(e) => setInstanceName(e.target.value)}
+            placeholder="Enter instance name..."
+            className="w-full bg-white text-gray-700 px-6 py-4 rounded-xl shadow-md mb-10 text-lg"
+          />
 
           {/* OS */}
           <p className="text-2xl font-semibold text-gray-900 mb-3">Operation System</p>
@@ -91,7 +109,9 @@ export default function EditRequestPage() {
               className="w-full bg-white text-gray-700 px-6 py-4 rounded-xl shadow-md appearance-none text-lg"
             >
               {osOptions.map((os) => (
-                <option key={os} value={os}>{os}</option>
+                <option key={os} value={os}>
+                  {os}
+                </option>
               ))}
             </select>
             <ChevronDown className="absolute right-5 top-4 text-gray-500" />
@@ -150,7 +170,6 @@ export default function EditRequestPage() {
             </div>
           </div>
 
-          {/* SAVE BUTTON */}
           <div className="flex justify-end">
             <button
               onClick={() => router.push("/dashboard")}

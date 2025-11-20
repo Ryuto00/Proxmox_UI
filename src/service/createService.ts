@@ -20,29 +20,23 @@ export async function getSpecOptions() {
   ];
 }
 
-// --- Mock Existing Requests ---
-const mockRequests = [
-  {
-    id: "100001",
-    os: "debian-12-standard",
-    spec: "t1.micro",
-    enableGPU: false,
-    startDate: "2025-01-01",
-    endDate: "2025-01-20",
-  },
-  {
-    id: "100002",
-    os: "ubuntu-20.04",
-    spec: "t2.medium",
-    enableGPU: true,
-    startDate: "2025-03-12",
-    endDate: "2025-03-30",
-  },
-];
-
-// --- ดึง Request ตาม ID ---
+// --- ดึง Request จาก LocalStorage ---
 export async function getRequestById(id: string) {
-  const req = mockRequests.find((r) => r.id === id);
-  if (!req) throw new Error("Request not found: " + id);
-  return req;
+  if (typeof window === "undefined") return null;
+
+  const saved = localStorage.getItem("mockRequests");
+  if (!saved) return null;
+
+  const list = JSON.parse(saved);
+  const found = list.find((item: any) => String(item.id) === String(id));
+
+  return found || null;
+}
+
+// --- ดึง Request ทั้งหมด ---
+export async function getAllRequests() {
+  if (typeof window === "undefined") return [];
+
+  const saved = localStorage.getItem("mockRequests");
+  return saved ? JSON.parse(saved) : [];
 }

@@ -9,18 +9,22 @@ import { getOSOptions, getSpecOptions } from "@/src/service/createService";
 export default function CreateRequestPage() {
   const router = useRouter();
 
+  // --- Options from mock service ---
   const [osOptions, setOsOptions] = useState<string[]>([]);
   const [specOptions, setSpecOptions] = useState<any[]>([]);
 
+  // --- User inputs ---
+  const [instanceName, setInstanceName] = useState("");
   const [selectedOS, setSelectedOS] = useState("");
   const [selectedSpec, setSelectedSpec] = useState<any>(null);
   const [enableGPU, setEnableGPU] = useState(false);
+
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
   const [loading, setLoading] = useState(false);
 
-  // เรียก mock OS/SPEC
+  // Load options (OS, SPEC)
   useEffect(() => {
     async function loadData() {
       const os = await getOSOptions();
@@ -36,14 +40,14 @@ export default function CreateRequestPage() {
     loadData();
   }, []);
 
-  // 💾 ฟังก์ชันบันทึก mock request ลง localStorage
+  // Save to mock localStorage
   function saveMockRequest(payload: any) {
     const saved = localStorage.getItem("mockRequests");
     const list = saved ? JSON.parse(saved) : [];
 
     const newReq = {
-      id: Date.now(),                 // mock ID
-      type: "Create",                 // คุณจะเปลี่ยน type ได้
+      id: String(Date.now()),   // ⭐ สำคัญ! ต้องเป็น string
+      type: "Create",
       date: new Date().toISOString().slice(0, 10),
       status: "Pending",
       ...payload,
@@ -53,27 +57,23 @@ export default function CreateRequestPage() {
     localStorage.setItem("mockRequests", JSON.stringify(updatedList));
   }
 
-  // SUBMIT
   const handleCreate = async () => {
     setLoading(true);
 
     const payload = {
+      name: instanceName,     // ⭐ ใช้ “name” ให้ตรงกับ Edit + View
       os: selectedOS,
-      spec: selectedSpec,
+      spec: selectedSpec,     // ⭐ เก็บ spec เป็น object ทั้งก้อน
       gpu: enableGPU,
       startDate,
       endDate,
     };
 
-    console.log("📤 Mock sending request...", payload);
-
-    // 🟣 บันทึกลง localStorage
     saveMockRequest(payload);
 
-    // simulate delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    // delay เพื่อความเนียน
+    await new Promise((resolve) => setTimeout(resolve, 300));
 
-    console.log("✅ Request saved to localStorage!");
     router.push("/dashboard");
   };
 
@@ -99,6 +99,19 @@ export default function CreateRequestPage() {
         </h1>
 
         <div className="bg-[#e8defc] px-12 py-12 rounded-3xl shadow-xl w-full max-w-5xl mx-auto">
+
+          {/* INSTANCE NAME */}
+          <p className="text-2xl font-semibold text-gray-900 mb-3">
+            Instance Name
+          </p>
+
+          <input
+            type="text"
+            value={instanceName}
+            onChange={(e) => setInstanceName(e.target.value)}
+            placeholder="Enter instance name..."
+            className="w-full bg-white text-gray-700 px-6 py-4 rounded-xl shadow-md mb-10 text-lg"
+          />
 
           {/* OS */}
           <p className="text-2xl font-semibold text-gray-900 mb-3">
@@ -137,6 +150,7 @@ export default function CreateRequestPage() {
                 </option>
               ))}
             </select>
+
             <ChevronDown className="absolute right-5 top-4 text-gray-500" />
           </div>
 
@@ -153,12 +167,13 @@ export default function CreateRequestPage() {
 
           {/* DATES */}
           <div className="grid grid-cols-2 gap-8 mb-12">
+
             <div className="relative">
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="w-full px-6 py-4 bg-white rounded-xl shadow-md text-gray-700 text-lg"
+                className="w-full bg-white px-6 py-4 rounded-xl shadow-md text-gray-700 text-lg"
               />
               <Calendar className="absolute right-5 top-4 text-gray-500" />
             </div>
@@ -168,7 +183,7 @@ export default function CreateRequestPage() {
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="w-full px-6 py-4 bg-white rounded-xl shadow-md text-gray-700 text-lg"
+                className="w-full bg-white px-6 py-4 rounded-xl shadow-md text-gray-700 text-lg"
               />
               <Calendar className="absolute right-5 top-4 text-gray-500" />
             </div>

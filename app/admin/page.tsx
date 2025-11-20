@@ -69,14 +69,12 @@ export default function AdminRequestList() {
                       <td>{item.spec?.cpu}</td>
                       <td>{item.spec?.ram}</td>
                       <td>
-                        <button
-                          onClick={() =>
-                            router.push(`/admin/view-request/${item.id}`)
-                          }
-                          className="px-4 py-1 bg-[#bdb7d3] hover:bg-[#a9a3c4] transition rounded-full text-gray-700"
-                        >
-                          View
-                        </button>
+                            <button
+                            onClick={() => router.push(`/admin/${item.id}`)}
+                            className="px-4 py-1 bg-[#bdb7d3] hover:bg-[#a9a3c4] transition rounded-full text-gray-700"
+                            >
+                            View
+                            </button>
                       </td>
                     </tr>
                   ))

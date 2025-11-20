@@ -34,3 +34,17 @@ export async function getUserInstances() {
     { name: "Backup-Server", os: "CentOS 7", cpu: "2 cores", ram: "4 GB", status: "On", id: 6 },
   ];
 }
+// --- อัปเดตสถานะของ request ใน localStorage ---
+export function updateRequestStatus(id: string, status: string) {
+  const saved = localStorage.getItem("mockRequests");
+  if (!saved) return;
+
+  const list = JSON.parse(saved);
+
+  const updated = list.map((req: any) =>
+    req.id === id ? { ...req, status } : req
+  );
+
+  localStorage.setItem("mockRequests", JSON.stringify(updated));
+}
+
