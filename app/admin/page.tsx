@@ -13,7 +13,11 @@ export default function AdminRequestList() {
   useEffect(() => {
     async function load() {
       const data = await getRequestInstances();
-      setRequests(data);
+
+      // ⭐⭐ แก้ตรงนี้: แสดงเฉพาะ Pending
+      const filtered = data.filter((item: any) => item.status === "Pending");
+
+      setRequests(filtered);
     }
     load();
   }, []);
@@ -69,12 +73,12 @@ export default function AdminRequestList() {
                       <td>{item.spec?.cpu}</td>
                       <td>{item.spec?.ram}</td>
                       <td>
-                            <button
-                            onClick={() => router.push(`/admin/${item.id}`)}
-                            className="px-4 py-1 bg-[#bdb7d3] hover:bg-[#a9a3c4] transition rounded-full text-gray-700"
-                            >
-                            View
-                            </button>
+                        <button
+                          onClick={() => router.push(`/admin/${item.id}`)}
+                          className="px-4 py-1 bg-[#bdb7d3] hover:bg-[#a9a3c4] transition rounded-full text-gray-700"
+                        >
+                          View
+                        </button>
                       </td>
                     </tr>
                   ))
@@ -89,3 +93,4 @@ export default function AdminRequestList() {
     </div>
   );
 }
+

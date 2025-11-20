@@ -1,50 +1,87 @@
 // ============================
-// Request Instances (Mock + LocalStorage)
+// Request Instances (LocalStorage)
 // ============================
 
 // ดึงรายการ Request
-export async function getRequestInstances() {
+export function getRequestInstances() {
   if (typeof window === "undefined") return [];
-
   const saved = localStorage.getItem("mockRequests");
   return saved ? JSON.parse(saved) : [];
 }
 
 // ดึง Request ตาม ID
-export async function getRequestById(id: string) {
+export function getRequestById(id: string) {
   if (typeof window === "undefined") return null;
 
-  const saved = localStorage.getItem("mockRequests");
-  const list = saved ? JSON.parse(saved) : [];
-
+  const list = getRequestInstances();
   return list.find((item: any) => item.id.toString() === id.toString()) || null;
 }
 
-// ============================
-// User Instances (ยังคง mock เดิมไว้ได้)
-// ============================
+// สร้าง Request ใหม่
+export function saveNewRequest(payload: any) {
+  const list = getRequestInstances();
 
-export async function getUserInstances() {
-  return [
-    { name: "Web-Server", os: "Ubuntu 20.04", cpu: "2 cores", ram: "4 GB", status: "On", id: 1 },
-    { name: "DB-Server", os: "Debian 11", cpu: "4 cores", ram: "8 GB", status: "OFF", id: 2 },
-    { name: "Cache-Server", os: "AlmaLinux 9", cpu: "2 cores", ram: "4 GB", status: "On", id: 3 },
-    { name: "Proxy-Server", os: "Ubuntu 22.04", cpu: "2 cores", ram: "4 GB", status: "On", id: 4 },
-    { name: "Monitoring-Node", os: "Debian 12", cpu: "4 cores", ram: "8 GB", status: "OFF", id: 5 },
-    { name: "Backup-Server", os: "CentOS 7", cpu: "2 cores", ram: "4 GB", status: "On", id: 6 },
-  ];
+  const newReq = {
+    id: Date.now(),
+    status: "Pending",
+    date: new Date().toISOString().slice(0, 10),
+    ...payload,
+  };
+
+  list.push(newReq);
+  localStorage.setItem("mockRequests", JSON.stringify(list));
+
+  return newReq.id;
 }
-// --- อัปเดตสถานะของ request ใน localStorage ---
-export function updateRequestStatus(id: string, status: string) {
-  const saved = localStorage.getItem("mockRequests");
-  if (!saved) return;
 
-  const list = JSON.parse(saved);
+// อัปเดตสถานะของ request (Approve / Reject)
+export function updateRequestStatus(id: string, status: string) {
+  const list = getRequestInstances();
 
   const updated = list.map((req: any) =>
-    req.id === id ? { ...req, status } : req
+    req.id.toString() === id ? { ...req, status } : req
   );
 
   localStorage.setItem("mockRequests", JSON.stringify(updated));
 }
 
+// ⭐⭐⭐ อัปเดตข้อมูล Request (ใช้ในหน้า Edit)
+export function updateRequest(id: string, newData: any) {
+  const list = getRequestInstances();
+
+  const updatedList = list.map((req: any) =>
+    req.id.toString() === id.toString()
+      ? { ...req, ...newData }
+      : req
+  );
+
+  localStorage.setItem("mockRequests", JSON.stringify(updatedList));
+}
+
+// ============================
+// User Instances (Approve แล้วเท่านั้น)
+// ============================
+
+export function getUserInstances() {
+  if (typeof window === "undefined") return [];
+  return JSON.parse(localStorage.getItem("userInstances") || "[]");
+}
+
+// เพิ่ม Instance เมื่อ Admin กด Approve
+export function addUserInstance(req: any) {
+  const list = getUserInstances();
+
+  const newInstance = {
+    id: Date.now(),
+    name: req.name,
+    os: req.os,
+    cpu: req.spec?.cpu,
+    ram: req.spec?.ram,
+    storage: req.spec?.storage,
+    status: "On",
+  };
+
+  list.push(newInstance);
+
+  localStorage.setItem("userInstances", JSON.stringify(list));
+}

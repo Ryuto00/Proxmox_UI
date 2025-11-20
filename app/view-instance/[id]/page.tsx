@@ -3,13 +3,12 @@
 import { Home } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getInstanceById } from "@/src/service/instanceService";
+import { getInstanceById, updateInstanceStatus } from "@/src/service/instanceService";
 
 export default function ViewInstancePage() {
   const params = useParams();
   const router = useRouter();
 
-  // ดึงค่า id แบบปลอดภัย
   const instanceId: string =
     Array.isArray(params.id) ? params.id[0] : params.id || "";
 
@@ -30,7 +29,6 @@ export default function ViewInstancePage() {
     load();
   }, [instanceId]);
 
-  // ---------- UI Loading ----------
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-2xl">
@@ -39,7 +37,6 @@ export default function ViewInstancePage() {
     );
   }
 
-  // ---------- ถ้าไม่พบ instance ----------
   if (!data) {
     return (
       <div className="min-h-screen flex items-center justify-center text-2xl">
@@ -48,7 +45,18 @@ export default function ViewInstancePage() {
     );
   }
 
-  // ---------- UI หลัก ----------
+  // ⭐ Toggle Status Function
+  const toggleStatus = () => {
+    const newStatus = data.status === "On" ? "Off" : "On";
+
+    updateInstanceStatus(Number(instanceId), newStatus);
+
+    setData((prev: any) => ({
+      ...prev,
+      status: newStatus,
+    }));
+  };
+
   return (
     <div className="min-h-screen bg-[#f4f2ff]">
       
@@ -76,7 +84,7 @@ export default function ViewInstancePage() {
             Operation System
           </p>
 
-          <div className="w-full bg-white px-6 py-4 rounded-xl shadow-md text-lg mb-10">
+          <div className="w-full bg-white px-6 py-4 rounded-xl shadow-md text-black mb-10">
             {data.os}
           </div>
 
@@ -90,21 +98,41 @@ export default function ViewInstancePage() {
                   <td className="py-3 font-semibold">Instance Name</td>
                   <td>{data.name}</td>
                 </tr>
+
                 <tr className="border-b">
                   <td className="py-3 font-semibold">CPU</td>
                   <td>{data.cpu}</td>
                 </tr>
+
                 <tr className="border-b">
                   <td className="py-3 font-semibold">RAM</td>
                   <td>{data.ram}</td>
                 </tr>
+
                 <tr className="border-b">
                   <td className="py-3 font-semibold">Storage</td>
                   <td>{data.storage}</td>
                 </tr>
+
+                {/* ⭐ TOGGLE BUTTON */}
                 <tr className="border-b">
                   <td className="py-3 font-semibold">Status</td>
-                  <td>{data.status}</td>
+                  <td>
+                    <button
+                      onClick={toggleStatus}
+                      className={`px-6 py-2 rounded-full text-white font-medium transition
+                        ${
+                          data.status === "On"
+                            ? "bg-green-500 hover:bg-green-600"
+                            : "bg-gray-400 hover:bg-gray-500"
+                        }
+                      `}
+                    >
+                      {data.status === "On"
+                        ? "On (Click to turn Off)"
+                        : "Off (Click to turn On)"}
+                    </button>
+                  </td>
                 </tr>
               </tbody>
             </table>

@@ -19,7 +19,13 @@ export default function DashboardPage() {
     async function loadData() {
       const req = await getRequestInstances();
       const user = await getUserInstances();
-      setRequestData(req);
+
+      // ⭐ แก้ตรงนี้: เอาเฉพาะ Pending + Rejected (ไม่เอา Approved)
+      const filteredReq = req.filter(
+        (item: any) => item.status !== "Approved"
+      );
+
+      setRequestData(filteredReq);
       setUserInstance(user);
     }
     loadData();
@@ -27,12 +33,19 @@ export default function DashboardPage() {
 
   const badgeStyle = (status: string) => {
     switch (status) {
-      case "Pending": return "bg-yellow-200 text-gray-800";
-      case "Approve": return "bg-green-200 text-gray-800";
-      case "Rejected": return "bg-red-200 text-gray-800";
-      case "On": return "bg-green-200 text-gray-800";
-      case "OFF": return "bg-gray-300 text-gray-800";
-      default: return "bg-gray-200";
+      case "Pending":
+        return "bg-yellow-200 text-gray-800";
+      case "Approved":         // ใช้ตรงกับ updateRequestStatus(..., "Approved")
+      case "Approve":          // กันกรณีเขียนผิดมาจาก backend
+        return "bg-green-200 text-gray-800";
+      case "Rejected":
+        return "bg-red-200 text-gray-800";
+      case "On":
+        return "bg-green-200 text-gray-800";
+      case "OFF":
+        return "bg-gray-300 text-gray-800";
+      default:
+        return "bg-gray-200 text-gray-800";
     }
   };
 
@@ -78,27 +91,41 @@ export default function DashboardPage() {
               </thead>
               
               <tbody>
-                {requestData.map((item) => (
-                  <tr key={item.id} className="border-b border-purple-100">
-                    <td className="py-4">{item.id}</td>
-                    <td>{item.type}</td>
-                    <td>{item.date}</td>
-                    <td>
-                      <span className={`px-4 py-1 rounded-full text-sm ${badgeStyle(item.status)}`}>
-                        {item.status}
-                      </span>
-                    </td>
-                    <td>
-                      <button
-                        onClick={() => router.push(`/edit-request/${item.id}`)}
-                        className="px-4 py-1 bg-[#bdb7d3] hover:bg-[#a9a3c4] transition rounded-full text-gray-700"
-                      >
-                        Edit
-                    </button>
-
+                {requestData.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="text-center py-6 text-gray-400"
+                    >
+                      No requests found.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  requestData.map((item) => (
+                    <tr key={item.id} className="border-b border-purple-100">
+                      <td className="py-4">{item.id}</td>
+                      <td>{item.type}</td>
+                      <td>{item.date}</td>
+                      <td>
+                        <span
+                          className={`px-4 py-1 rounded-full text-sm ${badgeStyle(
+                            item.status
+                          )}`}
+                        >
+                          {item.status}
+                        </span>
+                      </td>
+                      <td>
+                        <button
+                          onClick={() => router.push(`/edit-request/${item.id}`)}
+                          className="px-4 py-1 bg-[#bdb7d3] hover:bg-[#a9a3c4] transition rounded-full text-gray-700"
+                        >
+                          Edit
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
 
             </table>
@@ -123,28 +150,42 @@ export default function DashboardPage() {
               </thead>
 
               <tbody>
-                {userInstance.map((item) => (
-                  <tr key={item.name} className="border-b border-purple-100">
-                    <td className="py-4">{item.name}</td>
-                    <td>{item.os}</td>
-                    <td>{item.cpu}</td>
-                    <td>{item.ram}</td>
-                    <td>
-                      <span className={`px-4 py-1 rounded-full text-sm ${badgeStyle(item.status)}`}>
-                        {item.status}
-                      </span>
-                    </td>
-                    <td>
-                     <button
-                        onClick={() => router.push(`/view-instance/${item.id}`)}
-                        className="px-4 py-1 bg-[#bdb7d3] hover:bg-[#a9a3c4] transition rounded-full text-gray-700"
-                     >
-                        View
-                    </button>
-
+                {userInstance.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      className="text-center py-6 text-gray-400"
+                    >
+                      No instances found.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  userInstance.map((item) => (
+                    <tr key={item.name} className="border-b border-purple-100">
+                      <td className="py-4">{item.name}</td>
+                      <td>{item.os}</td>
+                      <td>{item.cpu}</td>
+                      <td>{item.ram}</td>
+                      <td>
+                        <span
+                          className={`px-4 py-1 rounded-full text-sm ${badgeStyle(
+                            item.status
+                          )}`}
+                        >
+                          {item.status}
+                        </span>
+                      </td>
+                      <td>
+                        <button
+                          onClick={() => router.push(`/view-instance/${item.id}`)}
+                          className="px-4 py-1 bg-[#bdb7d3] hover:bg-[#a9a3c4] transition rounded-full text-gray-700"
+                        >
+                          View
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
 
             </table>

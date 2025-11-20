@@ -10,6 +10,8 @@ import {
   getRequestById,
 } from "@/src/service/createService";
 
+import { updateRequest } from "@/src/service/requestService";  // ⭐ เพิ่มอันนี้
+
 export default function EditRequestPage() {
   const router = useRouter();
   const params = useParams();
@@ -45,7 +47,6 @@ export default function EditRequestPage() {
         setInstanceName(req.name || "");
         setSelectedOS(req.os);
 
-        // รองรับทั้ง object และ string
         const matchedSpec =
           specs.find((s) => s.name === req.spec?.name) ||
           specs.find((s) => s.name === req.spec) ||
@@ -67,6 +68,23 @@ export default function EditRequestPage() {
   }, [requestId]);
 
   if (loading) return <div className="p-10 text-xl">Loading...</div>;
+
+  // ⭐ ฟังก์ชัน Save Edit
+  const handleSave = async () => {
+    const updatedRequest = {
+      name: instanceName,
+      os: selectedOS,
+      spec: selectedSpec,
+      gpu: enableGPU,
+      startDate,
+      endDate,
+      status: "Pending",          // ใส่ถ้าต้องการ reset
+    };
+
+    await updateRequest(requestId, updatedRequest);
+
+    router.push("/dashboard");
+  };
 
   return (
     <div className="min-h-screen bg-[#f4f2ff]">
@@ -96,7 +114,6 @@ export default function EditRequestPage() {
             type="text"
             value={instanceName}
             onChange={(e) => setInstanceName(e.target.value)}
-            placeholder="Enter instance name..."
             className="w-full bg-white text-gray-700 px-6 py-4 rounded-xl shadow-md mb-10 text-lg"
           />
 
@@ -172,7 +189,7 @@ export default function EditRequestPage() {
 
           <div className="flex justify-end">
             <button
-              onClick={() => router.push("/dashboard")}
+              onClick={handleSave}     // ⭐ ผูกกับ handleSave
               className="px-14 py-4 bg-[#7d5fff] hover:bg-[#6d52f7] transition rounded-full text-white text-xl font-medium shadow-lg"
             >
               Save Edit

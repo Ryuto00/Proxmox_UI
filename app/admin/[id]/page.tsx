@@ -3,9 +3,13 @@
 import { Home } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { getRequestById } from "@/src/service/requestService";
-import { updateRequestStatus } from "@/src/service/requestService";
 
+import { 
+  getRequestById, 
+  updateRequestStatus 
+} from "@/src/service/requestService";
+
+import { addUserInstance } from "@/src/service/requestService";
 
 export default function AdminViewRequest() {
   const params = useParams();
@@ -29,6 +33,21 @@ export default function AdminViewRequest() {
       </div>
     );
   }
+
+  // ----- HANDLE APPROVE -----
+  const handleApprove = () => {
+    updateRequestStatus(id as string, "Approved");  // อัปเดตสถานะ
+
+    addUserInstance(data);                          // เพิ่ม instance ให้ user
+
+    router.push("/admin");                          // กลับหน้า admin
+  };
+
+  // ----- HANDLE REJECT -----
+  const handleReject = () => {
+    updateRequestStatus(id as string, "Rejected");
+    router.push("/admin");
+  };
 
   return (
     <div className="min-h-screen bg-[#f4f2ff] text-gray-700">
@@ -110,16 +129,16 @@ export default function AdminViewRequest() {
           {/* BUTTON AREA */}
           <div className="flex justify-end gap-6 mt-10">
             <button
-              onClick={() => {
-                updateRequestStatus(id as string, "Rejected");
-                router.push("/admin");
-              }}
+              onClick={handleReject}
               className="px-10 py-3 bg-red-400 hover:bg-red-500 text-white text-lg rounded-full shadow"
             >
               Reject
             </button>
 
-            <button className="px-10 py-3 bg-[#7d5fff] hover:bg-[#6d52f7] text-white text-lg rounded-full shadow">
+            <button
+              onClick={handleApprove}
+              className="px-10 py-3 bg-[#7d5fff] hover:bg-[#6d52f7] text-white text-lg rounded-full shadow"
+            >
               Approve
             </button>
           </div>
