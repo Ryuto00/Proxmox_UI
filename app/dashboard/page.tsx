@@ -53,7 +53,7 @@ export default function DashboardPage() {
             Request Instance
           </h2>
 
-          {/* ✅ กดแล้วไปหน้า create-request */}
+          {/* กดแล้วไปหน้า create-request */}
           <button
             onClick={() => router.push("/create-request")}
             className="flex items-center gap-2 px-5 py-2 bg-[#d4c5ff] hover:bg-[#bfb0ff] transition rounded-full shadow-sm"
@@ -89,9 +89,13 @@ export default function DashboardPage() {
                       </span>
                     </td>
                     <td>
-                      <button className="px-4 py-1 bg-[#bdb7d3] hover:bg-[#a9a3c4] transition rounded-full text-gray-700">
+                      <button
+                        onClick={() => router.push(`/edit-request/${item.id}`)}
+                        className="px-4 py-1 bg-[#bdb7d3] hover:bg-[#a9a3c4] transition rounded-full text-gray-700"
+                      >
                         Edit
-                      </button>
+                    </button>
+
                     </td>
                   </tr>
                 ))}
@@ -131,9 +135,13 @@ export default function DashboardPage() {
                       </span>
                     </td>
                     <td>
-                      <button className="px-4 py-1 bg-[#bdb7d3] hover:bg-[#a9a3c4] transition rounded-full text-gray-700">
+                     <button
+                        onClick={() => router.push(`/view-instance/${item.id}`)}
+                        className="px-4 py-1 bg-[#bdb7d3] hover:bg-[#a9a3c4] transition rounded-full text-gray-700"
+                     >
                         View
-                      </button>
+                    </button>
+
                     </td>
                   </tr>
                 ))}

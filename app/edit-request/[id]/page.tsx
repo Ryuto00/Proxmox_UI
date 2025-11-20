@@ -1,81 +1,63 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Home, ChevronDown, Calendar } from "lucide-react";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 
-import { getOSOptions, getSpecOptions } from "@/src/service/createService";
+import {
+  getOSOptions,
+  getSpecOptions,
+  getRequestById,
+} from "@/src/service/createService";
 
-export default function CreateRequestPage() {
+export default function EditRequestPage() {
   const router = useRouter();
+  const params = useParams();
 
+  // รองรับ array จาก dynamic route
+  const requestId: string = Array.isArray(params.id) ? params.id[0] : params.id!;
+
+
+  // States
   const [osOptions, setOsOptions] = useState<string[]>([]);
   const [specOptions, setSpecOptions] = useState<any[]>([]);
-
   const [selectedOS, setSelectedOS] = useState("");
-  const [selectedSpec, setSelectedSpec] = useState<any>(null);
+  const [selectedSpec, setSelectedSpec] = useState<any | null>(null);
+
   const [enableGPU, setEnableGPU] = useState(false);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // เรียก mock OS/SPEC
+  // --- Load ทั้งหมด ---
   useEffect(() => {
-    async function loadData() {
-      const os = await getOSOptions();
-      const spec = await getSpecOptions();
+    async function load() {
+      try {
+        const os = await getOSOptions();
+        const specs = await getSpecOptions();
+        const req = await getRequestById(requestId);
 
-      setOsOptions(os);
-      setSpecOptions(spec);
+        setOsOptions(os);
+        setSpecOptions(specs);
 
-      setSelectedOS(os[0]);
-      setSelectedSpec(spec[0]);
+        setSelectedOS(req.os);
+        setSelectedSpec(specs.find((s) => s.name === req.spec));
+
+        setEnableGPU(req.enableGPU);
+        setStartDate(req.startDate);
+        setEndDate(req.endDate);
+      } catch (err) {
+        console.error("Error loading edit data:", err);
+      } finally {
+        setLoading(false);
+      }
     }
 
-    loadData();
-  }, []);
+    load();
+  }, [requestId]);
 
-  // 💾 ฟังก์ชันบันทึก mock request ลง localStorage
-  function saveMockRequest(payload: any) {
-    const saved = localStorage.getItem("mockRequests");
-    const list = saved ? JSON.parse(saved) : [];
-
-    const newReq = {
-      id: Date.now(),                 // mock ID
-      type: "Create",                 // คุณจะเปลี่ยน type ได้
-      date: new Date().toISOString().slice(0, 10),
-      status: "Pending",
-      ...payload,
-    };
-
-    const updatedList = [...list, newReq];
-    localStorage.setItem("mockRequests", JSON.stringify(updatedList));
-  }
-
-  // SUBMIT
-  const handleCreate = async () => {
-    setLoading(true);
-
-    const payload = {
-      os: selectedOS,
-      spec: selectedSpec,
-      gpu: enableGPU,
-      startDate,
-      endDate,
-    };
-
-    console.log("📤 Mock sending request...", payload);
-
-    // 🟣 บันทึกลง localStorage
-    saveMockRequest(payload);
-
-    // simulate delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    console.log("✅ Request saved to localStorage!");
-    router.push("/dashboard");
-  };
+  if (loading) return <div className="p-10 text-xl">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-[#f4f2ff]">
@@ -91,20 +73,17 @@ export default function CreateRequestPage() {
         </span>
       </div>
 
-      {/* MAIN CONTENT */}
+      {/* PAGE CONTENT */}
       <div className="px-16 pt-12 pb-10">
 
         <h1 className="text-4xl font-semibold text-gray-900 mb-10">
-          Create Request
+          Edit Request #{requestId}
         </h1>
 
         <div className="bg-[#e8defc] px-12 py-12 rounded-3xl shadow-xl w-full max-w-5xl mx-auto">
 
           {/* OS */}
-          <p className="text-2xl font-semibold text-gray-900 mb-3">
-            Operation System
-          </p>
-
+          <p className="text-2xl font-semibold text-gray-900 mb-3">Operation System</p>
           <div className="relative mb-10">
             <select
               value={selectedOS}
@@ -112,9 +91,7 @@ export default function CreateRequestPage() {
               className="w-full bg-white text-gray-700 px-6 py-4 rounded-xl shadow-md appearance-none text-lg"
             >
               {osOptions.map((os) => (
-                <option key={os} value={os}>
-                  {os}
-                </option>
+                <option key={os} value={os}>{os}</option>
               ))}
             </select>
             <ChevronDown className="absolute right-5 top-4 text-gray-500" />
@@ -122,7 +99,6 @@ export default function CreateRequestPage() {
 
           {/* SPEC */}
           <p className="text-2xl font-semibold text-gray-900 mb-3">Spec:</p>
-
           <div className="relative mb-10">
             <select
               value={selectedSpec?.name}
@@ -151,7 +127,7 @@ export default function CreateRequestPage() {
             <label className="text-xl text-gray-900">Enable GPU</label>
           </div>
 
-          {/* DATES */}
+          {/* DATE */}
           <div className="grid grid-cols-2 gap-8 mb-12">
             <div className="relative">
               <input
@@ -174,15 +150,13 @@ export default function CreateRequestPage() {
             </div>
           </div>
 
-          {/* SUBMIT */}
+          {/* SAVE BUTTON */}
           <div className="flex justify-end">
             <button
-              onClick={handleCreate}
-              disabled={loading}
-              className={`px-14 py-4 rounded-full text-white text-xl font-medium shadow-lg transition 
-                ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-[#7d5fff] hover:bg-[#6d52f7]"}`}
+              onClick={() => router.push("/dashboard")}
+              className="px-14 py-4 bg-[#7d5fff] hover:bg-[#6d52f7] transition rounded-full text-white text-xl font-medium shadow-lg"
             >
-              {loading ? "Creating..." : "Create"}
+              Save Edit
             </button>
           </div>
 
