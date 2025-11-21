@@ -1,6 +1,6 @@
 "use client";
 
-import { Home } from "lucide-react";
+import { Home, Eye, EyeOff, Copy } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getInstanceById, updateInstanceStatus } from "@/src/service/instanceService";
@@ -14,6 +14,11 @@ export default function ViewInstancePage() {
 
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
+  // Modal states
+  const [showModal, setShowModal] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [copyLabel, setCopyLabel] = useState("Copy");
 
   useEffect(() => {
     async function load() {
@@ -29,6 +34,19 @@ export default function ViewInstancePage() {
     load();
   }, [instanceId]);
 
+  const toggleStatus = () => {
+    const newStatus = data.status === "On" ? "Off" : "On";
+    updateInstanceStatus(Number(instanceId), newStatus);
+
+    setData((prev: any) => ({ ...prev, status: newStatus }));
+  };
+
+  const copyUsername = async () => {
+    await navigator.clipboard.writeText(data.username);
+    setCopyLabel("Copied!");
+    setTimeout(() => setCopyLabel("Copy"), 1500);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center text-2xl">
@@ -36,26 +54,6 @@ export default function ViewInstancePage() {
       </div>
     );
   }
-
-  if (!data) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-2xl">
-        ❌ Instance not found
-      </div>
-    );
-  }
-
-  // ⭐ Toggle Status Function
-  const toggleStatus = () => {
-    const newStatus = data.status === "On" ? "Off" : "On";
-
-    updateInstanceStatus(Number(instanceId), newStatus);
-
-    setData((prev: any) => ({
-      ...prev,
-      status: newStatus,
-    }));
-  };
 
   return (
     <div className="min-h-screen bg-[#f4f2ff]">
@@ -80,19 +78,16 @@ export default function ViewInstancePage() {
         <div className="bg-[#e8defc] px-12 py-12 rounded-3xl shadow-xl w-full max-w-5xl mx-auto">
 
           {/* OS */}
-          <p className="text-2xl font-semibold text-gray-900 mb-3">
-            Operation System
-          </p>
-
+          <p className="text-2xl font-semibold text-black">Operation System</p>
           <div className="w-full bg-white px-6 py-4 rounded-xl shadow-md text-black mb-10">
             {data.os}
           </div>
 
           {/* SPEC TABLE */}
-          <p className="text-2xl font-semibold text-gray-900 mb-3">Spec:</p>
+          <p className="text-2xl font-semibold text-black mb-3">Spec:</p>
 
           <div className="bg-white rounded-3xl shadow-md p-6">
-            <table className="w-full border-collapse text-gray-700">
+            <table className="w-full text-gray-700">
               <tbody>
                 <tr className="border-b">
                   <td className="py-3 font-semibold">Instance Name</td>
@@ -114,18 +109,13 @@ export default function ViewInstancePage() {
                   <td>{data.storage}</td>
                 </tr>
 
-                {/* ⭐ TOGGLE BUTTON */}
                 <tr className="border-b">
                   <td className="py-3 font-semibold">Status</td>
                   <td>
                     <button
                       onClick={toggleStatus}
-                      className={`px-6 py-2 rounded-full text-white font-medium transition
-                        ${
-                          data.status === "On"
-                            ? "bg-green-500 hover:bg-green-600"
-                            : "bg-gray-400 hover:bg-gray-500"
-                        }
+                      className={`px-6 py-2 rounded-full text-white transition
+                        ${data.status === "On" ? "bg-green-500" : "bg-gray-500"}
                       `}
                     >
                       {data.status === "On"
@@ -138,15 +128,84 @@ export default function ViewInstancePage() {
             </table>
           </div>
 
-          {/* BUTTON */}
+          {/* VIEW PASSWORD */}
           <div className="flex justify-end mt-10">
-            <button className="px-10 py-3 bg-[#7d5fff] hover:bg-[#6d52f7] transition rounded-full text-white text-xl font-medium shadow-lg">
+            <button
+              onClick={() => setShowModal(true)}
+              className="px-10 py-3 bg-[#7d5fff] hover:bg-[#6d52f7] rounded-full text-white text-xl font-medium shadow-lg"
+            >
               View Password
             </button>
           </div>
-
         </div>
       </div>
+
+      {/* MODAL POPUP */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-3xl shadow-2xl w-[430px] p-8">
+
+            <h2 className="text-3xl font-semibold text-center text-black mb-8">
+              View Password
+            </h2>
+
+            {/* Instance */}
+            <div className="mb-6">
+              <p className="font-semibold mb-1 text-black">Instance</p>
+              <div className="bg-gray-100 px-4 py-3 text-black rounded-xl">
+                {data.name}
+              </div>
+            </div>
+
+            {/* Username */}
+            <div className="mb-6">
+              <p className="font-semibold text-black mb-1">Username</p>
+              <div className="flex items-center gap-2">
+                <div className="flex-1 bg-gray-100 px-4 py-3 rounded-xl text-black">
+                  {data.username}
+                </div>
+                <button
+                  onClick={copyUsername}
+                  className="flex items-center gap-1 px-3 py-2 rounded-xl bg-[#7d5fff] hover:bg-[#6d52f7] transition text-white"
+                >
+                  <Copy size={16} />
+                  {copyLabel}
+                </button>
+              </div>
+            </div>
+
+            {/* Password */}
+            <div className="mb-8">
+              <p className="font-semibold mb-1 text-black">Password</p>
+              <div className="flex items-center bg-gray-100 px-4 py-3 rounded-xl">
+                <span className="flex-1 text-black">
+                  {showPassword ? data.password : "••••••••"}
+                </span>
+
+                <button
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="p-1 rounded-full hover:bg-gray-200"
+                >
+                  {showPassword ? (
+                    <EyeOff size={20} className="text-black" />
+                  ) : (
+                    <Eye size={20} className="text-black" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Close Button */}
+            <button
+              onClick={() => setShowModal(false)}
+              className="w-full py-3 bg-[#7d5fff] hover:bg-[#6d52f7] text-white rounded-full text-lg font-medium"
+            >
+              Close
+            </button>
+
+          </div>
+        </div>
+      )}
     </div>
   );
 }

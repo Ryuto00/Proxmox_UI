@@ -9,7 +9,7 @@ import {
   updateRequestStatus 
 } from "@/src/service/requestService";
 
-import { addUserInstance } from "@/src/service/requestService";
+import { addUserInstance } from "@/src/service/instanceService";
 
 export default function AdminViewRequest() {
   const params = useParams();
@@ -34,16 +34,12 @@ export default function AdminViewRequest() {
     );
   }
 
-  // ----- HANDLE APPROVE -----
   const handleApprove = () => {
-    updateRequestStatus(id as string, "Approved");  // อัปเดตสถานะ
-
-    addUserInstance(data);                          // เพิ่ม instance ให้ user
-
-    router.push("/admin");                          // กลับหน้า admin
+    updateRequestStatus(id as string, "Approved");
+    addUserInstance(data);
+    router.push("/admin");
   };
 
-  // ----- HANDLE REJECT -----
   const handleReject = () => {
     updateRequestStatus(id as string, "Rejected");
     router.push("/admin");
@@ -74,7 +70,6 @@ export default function AdminViewRequest() {
 
         <div className="bg-[#e8defc] p-10 rounded-3xl shadow-xl max-w-5xl mx-auto">
 
-          {/* OS */}
           <p className="text-2xl font-semibold text-gray-900 mb-3">
             Operation System
           </p>
@@ -83,50 +78,64 @@ export default function AdminViewRequest() {
             {data.os}
           </div>
 
-          {/* SPEC TABLE */}
           <p className="text-2xl font-semibold text-gray-900 mb-3">Spec:</p>
 
           <div className="bg-white rounded-2xl shadow p-8">
 
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="text-left text-gray-600 border-b border-purple-300">
-                  <th className="pb-3">Instance Name</th>
-                  <th className="pb-3">Operation System</th>
-                  <th className="pb-3">Spec</th>
-                  <th className="pb-3">Date</th>
-                </tr>
-              </thead>
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="text-left text-gray-600 border-b border-purple-300">
+                <th className="pb-3">Instance Name</th>
+                <th className="pb-3">Operation System</th>
+                <th className="pb-3">Spec</th>
+                <th className="pb-3 text-center">Date</th>
+              </tr>
+            </thead>
 
-              <tbody>
-                <tr className="border-b border-purple-200">
-                  <td className="py-4">{data.name}</td>
-                  <td>{data.os}</td>
-                  <td>{data.spec?.cpu}</td>
-                  <td>{data.endDate}</td>
-                </tr>
+            <tbody>
 
-                <tr className="border-b border-purple-200">
-                  <td></td>
-                  <td></td>
-                  <td className="py-4">{data.spec?.ram}</td>
-                  <td></td>
-                </tr>
+              {/* CPU row */}
+              <tr className="border-b border-purple-200">
+                <td className="py-4">{data.name}</td>
+                <td className="py-4">{data.os}</td>
+                <td className="py-4">{data.spec?.cpu}</td>
 
-                <tr>
-                  <td></td>
-                  <td></td>
-                  <td className="py-4">
-                    {data.spec?.storage ?? "60 GB Storage"}
-                  </td>
-                  <td></td>
-                </tr>
-              </tbody>
-            </table>
+                <td className="py-4 text-center">
+                  <div className="flex flex-col items-center leading-tight">
+                    <span className="font-semibold text-gray-700">Start:</span>
+                    <span>{data.startDate || "-"}</span>
+                  </div>
+                </td>
+              </tr>
+
+              {/* RAM row with End Date */}
+              <tr className="border-b border-purple-200">
+                <td className="py-4"></td>
+                <td className="py-4"></td>
+                <td className="py-4">{data.spec?.ram}</td>
+
+                <td className="py-4 text-center">
+                  <div className="flex flex-col items-center leading-tight">
+                    <span className="font-semibold text-gray-700">End:</span>
+                    <span>{data.endDate || "-"}</span>
+                  </div>
+                </td>
+              </tr>
+
+              {/* Storage row */}
+              <tr>
+                <td className="py-4"></td>
+                <td className="py-4"></td>
+                <td className="py-4">{data.spec?.storage ?? "60 GB Storage"}</td>
+                <td className="py-4"></td>
+              </tr>
+
+            </tbody>
+          </table>
+
 
           </div>
 
-          {/* BUTTON AREA */}
           <div className="flex justify-end gap-6 mt-10">
             <button
               onClick={handleReject}
